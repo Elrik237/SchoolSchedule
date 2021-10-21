@@ -39,9 +39,9 @@
           </form>
         </aside>
         <main class="main">
-          <div class="main-info">
-            <p class="main-info__text" id="groupName">Группа 1ИБб-01-21оп</p>
-            <p class="main-info__text" id="date">Расписание на: 18.10.2021</p>
+          <div class="main-info" style="display: none;">
+            <p class="main-info__text" id="groupName">Класс <span class="selectClass"></span></p>
+            <p class="main-info__text" id="date">Расписание на: <span class="selectDate"></span></p>
           </div>
           <table class="table" id="table">
             <thead id="thead">
@@ -60,6 +60,7 @@
 
   <script src="{% static 'libs/axios/axios.min.js' %}"></script>
   <script src="{% static 'libs/datepicker/air-datepicker.js' %}"></script>
+  <script src="{% static 'libs/moment/moment.js' %}"></script>
   <script src="{% static 'js/index.js' %}"></script>
 </body>
 </html>

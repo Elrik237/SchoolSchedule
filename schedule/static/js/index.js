@@ -51,12 +51,16 @@ function submitSearchForm(event) {
   event.preventDefault();
   
   let selectValue = document.getElementById('group').value,
-      selectDate = datepickerInstance.viewDate,
+      selectDate = [datepickerInstance.selectedDates],
       fullWeekCheckbox = document.getElementById('fullWeek');
 
   if (fullWeekCheckbox.checked) {
-    
+    selectDate = [moment().startOf('week'), moment().endOf('week')]
   };
+
+  document.querySelector('.main-info').style.display = 'flex';
+  document.getElementById('groupName').innerHTML = `класс: ${getSelectText()}`;
+  document.getElementById('date').innerHTML = `расписание на ${moment(selectDate[0]).format('DD.MM.YYYY')}`;
 
   let params = {selectValue, selectDate}
 
@@ -67,8 +71,10 @@ function submitSearchForm(event) {
 
     let html = '';
 
-    if (response.data.length === 0) {
-      return
+    if (!response.data?.length) {
+      tbody.innerHTML = html;
+
+      return false;
     }
 
     response.data.forEach(item => {
@@ -84,5 +90,10 @@ function submitSearchForm(event) {
 
     tbody.innerHTML = html;
   });
+}
 
+function getSelectText() {
+  let select = document.getElementById('group');
+
+  return select.options[select.selectedIndex].text;
 }
