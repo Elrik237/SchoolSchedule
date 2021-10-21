@@ -1,0 +1,16 @@
+.wrapper {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+
+  &-inner {
+    max-width: 1330px;
+    padding: 30px 15px;
+    margin: 0 auto;
+  }
+
+  &-content {
+    display: flex;
+    column-gap: 30px;
+  }
+}
