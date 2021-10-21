@@ -1,0 +1,9 @@
+.sidebar {
+  flex-shrink: 0;
+  box-shadow: $box-shadow;
+  background-color: $color-bg-block;
+  border: $border;
+  border-radius: $border-radius;
+  padding: 15px;
+  height: fit-content;
+}
