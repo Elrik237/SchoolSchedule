@@ -27,9 +27,9 @@ class Schedule (models.Model):
     day = models.DateField("Дата" ,max_length=150)
     time = models.CharField("Время" ,max_length=150)
     discipline = models.CharField("Дисциплина" ,max_length=250)
-    teacher  = models.CharField("ФИО преподавателя" ,max_length=150)
+    teacher  = models.ForeignKey(Teachers, on_delete=models.CASCADE,)
     group  = models.ForeignKey(Groups, on_delete=models.CASCADE,)
-    place = models.ForeignKey(Teachers, on_delete=models.CASCADE,)
+    place = models.CharField(max_length=250)
 
     class Meta:
         verbose_name = 'Рассписание уроков'

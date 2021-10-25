@@ -16,12 +16,11 @@
         <aside class="sidebar">
           <form id="searchForm" class="form">
             <div class="form-block column">
-              <label class="text" for="group">Группа</label>
+              <label class="text" for="group">Класс</label>
               <select class="select" name="group" id="group">
-                <option value="1">Группа 1</option>
-                <option value="2">Группа 2</option>
-                <option value="3">Группа 3</option>
-                <option value="4">Группа 4</option>
+                {% for item in groups %}
+                <option value="{{ item.id }}">{{ item.name }}</option>
+                {% endfor %}
               </select>
             </div>
             <div class="form-block column">
@@ -45,7 +44,6 @@
           </div>
           <table class="table" id="table">
             <thead id="thead">
-
             </thead>
             <tbody id="tbody">  
             </tbody>

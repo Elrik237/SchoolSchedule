@@ -51,42 +51,88 @@ function submitSearchForm(event) {
   event.preventDefault();
   
   let selectValue = document.getElementById('group').value,
-      selectDate = [datepickerInstance.selectedDates],
+      selectDate = datepickerInstance.selectedDates,
       fullWeekCheckbox = document.getElementById('fullWeek');
 
-  if (fullWeekCheckbox.checked) {
-    selectDate = [moment().startOf('week'), moment().endOf('week')]
+  let checkFullWeekCheckbox = fullWeekCheckbox.checked;
+
+  let dateText = '';
+
+  selectDate = selectDate.map(item => moment(item).format('YYYY-MM-DD'));
+
+  if (checkFullWeekCheckbox) {
+    selectDate = [moment().startOf('week').format('YYYY-MM-DD'), moment().endOf('week').format('YYYY-MM-DD')];
+    dateText = 'неделю'
+  } else {
+    dateText = moment(selectDate[0]).format('DD.MM.YYYY')
   };
+
 
   document.querySelector('.main-info').style.display = 'flex';
   document.getElementById('groupName').innerHTML = `класс: ${getSelectText()}`;
-  document.getElementById('date').innerHTML = `расписание на ${moment(selectDate[0]).format('DD.MM.YYYY')}`;
+  document.getElementById('date').innerHTML = `расписание на ${dateText}`;
 
   let params = {selectValue, selectDate}
 
   axios.get('/search', {
     params
   }).then(response => {
+
+    let data = deserialize(response.data);
+
     let tbody = document.getElementById('tbody');
 
     let html = '';
 
-    if (!response.data?.length) {
+    if (!data?.length) {
       tbody.innerHTML = html;
 
       return false;
     }
 
-    response.data.forEach(item => {
-      let tr = `<tr> 
-        <td width="15%" align="center">${item.time}</td>
-        <td>${item.discipline}</td>
-        <td>${item.name}</td>
-        <td width="15%" align="center">${item.place}</td>
-      </tr>`;
+    if (checkFullWeekCheckbox) {
+      let result = [];
 
-      html += tr;
-    });
+      let dayFormatData = Array.from(new Set(data.map(item => item.day )));
+
+      dayFormatData.forEach((item, index) =>{
+          result[index] = data.filter(subitem => subitem.day == item )
+      });
+
+      result.forEach(item => {
+        item.forEach((subitem, index) => {
+
+          if (index === 0) {
+            let trDayName = `<tr> 
+              <td colspan="4">${moment(subitem.day).format('DD.MM.YYYY')}</td>
+            </tr>`;
+
+            html += trDayName;
+          }
+
+          let tr = `<tr> 
+              <td width="15%" align="center">${subitem.time}</td>
+              <td>${subitem.discipline}</td>
+              <td>${subitem.teacher__fio}</td>
+              <td width="15%" align="center">${subitem.place}</td>
+            </tr>`;
+
+            html += tr;
+        })
+      })
+
+    } else {
+      data.forEach(item => {
+        let tr = `<tr> 
+          <td width="15%" align="center">${item.time}</td>
+          <td>${item.discipline}</td>
+          <td>${item.teacher__fio}</td>
+          <td width="15%" align="center">${item.place}</td>
+        </tr>`;
+  
+        html += tr;
+      });
+    }
 
     tbody.innerHTML = html;
   });
@@ -96,4 +142,10 @@ function getSelectText() {
   let select = document.getElementById('group');
 
   return select.options[select.selectedIndex].text;
+}
+
+function deserialize(data) {
+  let formatData = JSON.parse(data)
+
+  return formatData
 }

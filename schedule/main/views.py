@@ -1,17 +1,30 @@
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.views.generic.base import TemplateView, View
+from django.contrib.staticfiles import finders
 
 import pandas as pd
+import json 
+import datetime
 
-from django.contrib.staticfiles import finders
+from .models import Schedule, Teachers,Groups
+
+
+def customDateSerialize(o):
+    if isinstance(o, datetime.date):
+        return o.__str__()
+
 
 class HomePageView(TemplateView):
 
     template_name = "home.html"
 
     def get_context_data(self, **kwargs):
-        context = {'test': 'test'}
+        teachers = Teachers.objects.all()
+        groups = Groups.objects.all()
+
+        context = {'teachers': teachers, 'groups':groups}
+
         return context
 
 class SearchSchedule(View):
@@ -19,34 +32,21 @@ class SearchSchedule(View):
         select_value = int(request.GET.get('selectValue'))
         select_date = request.GET.getlist('selectDate[]')
 
+        date_from = datetime.datetime.strptime(select_date[0], '%Y-%m-%d')
 
-        data1 = [
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Иванов И.И.', 'place': 'Каб. 11'},
-        ] 
+        if len(select_date) == 1:
+            schedule_list = Schedule.objects.filter(
+                group = select_value,
+                day = date_from
+                ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('time')
 
-        data2 = [
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Петров П.П.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Петров П.П.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Петров П.П.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Петров П.П.', 'place': 'Каб. 11'},
-            {'time': '08:00 - 08:40', 'discipline': 'Родной язык', 'name': 'Петров П.П.', 'place': 'Каб. 11'},
-        ]
+        elif len(select_date) == 2:
+            schedule_list = Schedule.objects.filter(
+                group = select_value,
+                day__range = select_date
+                ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('day', 'time')
 
-        data = None
-
-        if select_value == 1:
-            data = data1
-        elif select_value == 2:
-            data = data2
-
-
+        data = json.dumps(list(schedule_list), default = customDateSerialize)
 
         return JsonResponse(data = data, safe=False)
 
