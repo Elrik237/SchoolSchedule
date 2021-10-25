@@ -13,8 +13,8 @@ document.getElementById('searchForm').addEventListener("submit", submitSearchFor
 // Заголовки таблицы в зависимости от типа расписания (для студентов, преподователей и т.д.)
 function getTableHeader(type) {
   const table_headers = {
-    "student": ['Время', 'Дисциплина', 'Преподаватель', 'Ауд/Адрес'],
-    "teacher": ['Время', 'Дисциплина', 'Группа', 'Ауд/Адрес'],
+    "student": ['Время', 'Дисциплина', 'Преподаватель', 'Кабинет'],
+    "teacher": ['Время', 'Дисциплина', 'Группа', 'Кабинет'],
   }
 
   return table_headers[type];
@@ -79,10 +79,10 @@ function submitSearchForm(event) {
 
     response.data.forEach(item => {
       let tr = `<tr> 
-        <td>${item.time}</td>
+        <td width="15%" align="center">${item.time}</td>
         <td>${item.discipline}</td>
         <td>${item.name}</td>
-        <td>${item.place}</td>
+        <td width="15%" align="center">${item.place}</td>
       </tr>`;
 
       html += tr;
