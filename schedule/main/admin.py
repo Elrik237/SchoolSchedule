@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import Teachers, Groups, Schedule
 
-# Register your models here.
+admin.site.register(Teachers)
+admin.site.register(Groups)
+admin.site.register(Schedule)
+
