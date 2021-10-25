@@ -2,6 +2,10 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.views.generic.base import TemplateView, View
 
+import pandas as pd
+
+from django.contrib.staticfiles import finders
+
 class HomePageView(TemplateView):
 
     template_name = "home.html"
@@ -42,4 +46,7 @@ class SearchSchedule(View):
         elif select_value == 2:
             data = data2
 
+
+
         return JsonResponse(data = data, safe=False)
+
