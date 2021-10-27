@@ -1,5 +1,6 @@
 //-- Переменные --//
-let datepickerInstance = null;
+let datepickerInstance = null,
+    type = 'group';
 
 //-- /Переменные --//
 
@@ -7,14 +8,16 @@ let datepickerInstance = null;
 //-- Слушатели --//
 document.addEventListener("DOMContentLoaded", readyDocument);
 document.getElementById('searchForm').addEventListener("submit", submitSearchForm);
+document.getElementById('showForTeacher').addEventListener('click', showForTeacher);
+document.getElementById('showForGroup').addEventListener('click', showForGroup);
 //-- /Слушатели --//
 
 
 // Заголовки таблицы в зависимости от типа расписания (для студентов, преподователей и т.д.)
-function getTableHeader(type) {
+function getTableHeader() {
   const table_headers = {
-    "student": ['Время', 'Дисциплина', 'Преподаватель', 'Кабинет'],
-    "teacher": ['Время', 'Дисциплина', 'Группа', 'Кабинет'],
+    "group": ['Время', 'Дисциплина', 'Преподаватель', 'Кабинет'],
+    "teacher": ['Время', 'Дисциплина', 'Класс', 'Кабинет'],
   }
 
   return table_headers[type];
@@ -24,6 +27,8 @@ function getTableHeader(type) {
 function readyDocument() {
   initDatepicker();
   initTable();
+
+  datepickerInstance.selectDate(new Date());
 }
 
 // Инициализация календаря
@@ -32,7 +37,7 @@ function initDatepicker() {
 }
 
 // Инициализация таблицы
-function initTable(type = "student") {
+function initTable() {
   let block = document.getElementById('thead');
 
   let html = "";
@@ -46,11 +51,17 @@ function initTable(type = "student") {
   block.innerHTML = html;
 }
 
+// Очистка таблицы
+function clearTable() {
+  document.getElementById('tbody').innerHTML = '';
+}
+
 // Показать расписание
 function submitSearchForm(event) {
   event.preventDefault();
   
-  let selectValue = document.getElementById('group').value,
+  let selectGroup = document.getElementById('group').value,
+      selectTeacher = document.getElementById('teacher').value,
       selectDate = datepickerInstance.selectedDates,
       fullWeekCheckbox = document.getElementById('fullWeek');
 
@@ -62,7 +73,7 @@ function submitSearchForm(event) {
 
   if (checkFullWeekCheckbox) {
     selectDate = [moment().startOf('week').format('YYYY-MM-DD'), moment().endOf('week').format('YYYY-MM-DD')];
-    dateText = 'неделю'
+    dateText = `${moment(selectDate[0]).format('DD.MM.YYYY')} - ${moment(selectDate[1]).format('DD.MM.YYYY')}`
   } else {
     dateText = moment(selectDate[0]).format('DD.MM.YYYY')
   };
@@ -70,82 +81,138 @@ function submitSearchForm(event) {
 
   document.querySelector('.main-info').style.display = 'flex';
   document.getElementById('groupName').innerHTML = `класс: ${getSelectText()}`;
-  document.getElementById('date').innerHTML = `расписание на ${dateText}`;
+  document.getElementById('date').innerHTML = `${dateText}`;
 
-  let params = {selectValue, selectDate}
+  let params = {selectGroup, selectTeacher, selectDate, type}
 
   axios.get('/search', {
     params
   }).then(response => {
 
-    let data = deserialize(response.data);
-
-    let tbody = document.getElementById('tbody');
-
-    let html = '';
-
-    if (!data?.length) {
-      tbody.innerHTML = html;
-
-      return false;
-    }
-
-    if (checkFullWeekCheckbox) {
-      let result = [];
-
-      let dayFormatData = Array.from(new Set(data.map(item => item.day )));
-
-      dayFormatData.forEach((item, index) =>{
-          result[index] = data.filter(subitem => subitem.day == item )
-      });
-
-      result.forEach(item => {
-        item.forEach((subitem, index) => {
-
-          if (index === 0) {
-            let trDayName = `<tr> 
-              <td colspan="4">${moment(subitem.day).format('DD.MM.YYYY')}</td>
-            </tr>`;
-
-            html += trDayName;
-          }
-
-          let tr = `<tr> 
-              <td width="15%" align="center">${subitem.time}</td>
-              <td>${subitem.discipline}</td>
-              <td>${subitem.teacher__fio}</td>
-              <td width="15%" align="center">${subitem.place}</td>
-            </tr>`;
-
-            html += tr;
-        })
-      })
-
+    if (response.data.length != 0) {
+      let data = deserialize(response.data);
+      showData(data, checkFullWeekCheckbox);
     } else {
-      data.forEach(item => {
-        let tr = `<tr> 
-          <td width="15%" align="center">${item.time}</td>
-          <td>${item.discipline}</td>
-          <td>${item.teacher__fio}</td>
-          <td width="15%" align="center">${item.place}</td>
-        </tr>`;
-  
-        html += tr;
-      });
+      return;
     }
 
-    tbody.innerHTML = html;
   });
 }
 
+// Формирование таблицы для классов
+function showData(data, check) {
+  let tbody = document.getElementById('tbody');
+
+  let html = '';
+
+  if (!data?.length) {
+    tbody.innerHTML = html;
+
+    return false;
+  }
+
+  if (check) {
+    let result = [];
+
+    let dayFormatData = Array.from(new Set(data.map(item => item.day )));
+
+    dayFormatData.forEach((item, index) =>{
+        result[index] = data.filter(subitem => subitem.day == item )
+    });
+
+    result.forEach(item => {
+      item.forEach((subitem, index) => {
+
+        if (index === 0) {
+          let trDayName = `<tr> 
+            <td colspan="4">${moment(subitem.day).format('DD.MM.YYYY')}</td>
+          </tr>`;
+
+          html += trDayName;
+        }
+
+        let columnGroupOrTeacher = '';
+
+        if (type === 'group') {
+          columnGroupOrTeacher = subitem.teacher__fio;
+        } else {
+          columnGroupOrTeacher = subitem.group__name;
+        }
+
+        let tr = `<tr> 
+            <td width="15%" align="center">${subitem.time}</td>
+            <td>${subitem.discipline}</td>
+            <td>${columnGroupOrTeacher}</td>
+            <td width="15%" align="center">${subitem.place}</td>
+          </tr>`;
+
+          html += tr;
+      })
+    })
+
+  } else {
+    data.forEach(item => {
+      let columnGroupOrTeacher = '';
+
+      if (type === 'group') {
+        columnGroupOrTeacher = item.teacher__fio;
+      } else {
+        columnGroupOrTeacher = item.group__name;
+      }
+
+      let tr = `<tr> 
+        <td width="15%" align="center">${item.time}</td>
+        <td>${item.discipline}</td>
+        <td>${item.teacher__fio}</td>
+        <td width="15%" align="center">${item.place}</td>
+      </tr>`;
+
+      html += tr;
+    });
+  }
+
+  tbody.innerHTML = html;
+}
+
+// Тест выбранного значения селекта
 function getSelectText() {
-  let select = document.getElementById('group');
+  let select;
+
+  if (type === 'group') select = document.getElementById('group');
+  if (type === 'teacher') select = document.getElementById('teacher');
 
   return select.options[select.selectedIndex].text;
 }
 
+// Десериализация пришедсшего с бэка json
 function deserialize(data) {
   let formatData = JSON.parse(data)
 
   return formatData
+}
+
+// Показать расписание для преподавателя
+function showForTeacher() {
+  document.getElementById('groupWrapper').classList.add('hide');
+  document.getElementById('showForTeacher').classList.add('hide');
+  document.getElementById('teacherWrapper').classList.remove('hide');
+  document.getElementById('showForGroup').classList.remove('hide');
+
+  type = 'teacher';
+
+  initTable();
+  clearTable();
+}
+
+// Показать расписание для класса
+function showForGroup() {
+  document.getElementById('groupWrapper').classList.remove('hide');
+  document.getElementById('showForTeacher').classList.remove('hide');
+  document.getElementById('teacherWrapper').classList.add('hide');
+  document.getElementById('showForGroup').classList.add('hide');
+
+  type = 'group';
+
+  initTable();
+  clearTable();
 }

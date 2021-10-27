@@ -1,6 +1,7 @@
 .form {
   position: relative;
   width: 100%;
+  height: fit-content;
 
   &-block {
     display: flex;
@@ -26,8 +27,8 @@
       padding: 10px 15px;
     }
 
-    & ~ & {
-      margin-top: 30px;
+    &:not(:last-child):not(.hide) {
+      margin-bottom: 30px;
     }
   }
 
@@ -78,5 +79,9 @@
         }
       }
     }
+  }
+
+  .hide {
+    display: none;
   }
 }
