@@ -1,8 +1,12 @@
 //-- Переменные --//
 let datepickerInstance = null,
     type = 'group';
-
 //-- /Переменные --//
+
+
+// -- Вспомогательные функции -- //
+const getLength = arr => arr.flat(Infinity).length;
+// -- .Вспомогательные функции -- //
 
 
 //-- Слушатели --//
@@ -16,8 +20,8 @@ document.getElementById('showForGroup').addEventListener('click', showForGroup);
 // Заголовки таблицы в зависимости от типа расписания (для студентов, преподователей и т.д.)
 function getTableHeader() {
   const table_headers = {
-    "group": ['Время', 'Дисциплина', 'Преподаватель', 'Кабинет'],
-    "teacher": ['Время', 'Дисциплина', 'Класс', 'Кабинет'],
+    "group": ['Дата', 'Время', 'Дисциплина', 'Преподаватель', 'Кабинет'],
+    "teacher": ['Дата', 'Время', 'Дисциплина', 'Класс', 'Кабинет'],
   }
 
   return table_headers[type];
@@ -59,11 +63,11 @@ function clearTable() {
 // Показать расписание
 function submitSearchForm(event) {
   event.preventDefault();
-  
+
   let selectGroup = document.getElementById('group').value,
-      selectTeacher = document.getElementById('teacher').value,
-      selectDate = datepickerInstance.selectedDates,
-      fullWeekCheckbox = document.getElementById('fullWeek');
+    selectTeacher = document.getElementById('teacher').value,
+    selectDate = datepickerInstance.selectedDates,
+    fullWeekCheckbox = document.getElementById('fullWeek');
 
   let checkFullWeekCheckbox = fullWeekCheckbox.checked;
 
@@ -83,7 +87,7 @@ function submitSearchForm(event) {
   document.getElementById('groupName').innerHTML = `класс: ${getSelectText()}`;
   document.getElementById('date').innerHTML = `${dateText}`;
 
-  let params = {selectGroup, selectTeacher, selectDate, type}
+  let params = { selectGroup, selectTeacher, selectDate, type }
 
   axios.get('/search', {
     params
@@ -101,7 +105,8 @@ function submitSearchForm(event) {
 
 // Формирование таблицы для классов
 function showData(data, check) {
-  let tbody = document.getElementById('tbody');
+
+  const tbody = document.getElementById('tbody');
 
   let html = '';
 
@@ -111,65 +116,61 @@ function showData(data, check) {
     return false;
   }
 
-  if (check) {
-    let result = [];
+  data.forEach((day) => {
+    day.forEach((item, index) => {
+      let subHtml = '';
 
-    let dayFormatData = Array.from(new Set(data.map(item => item.day )));
-
-    dayFormatData.forEach((item, index) =>{
-        result[index] = data.filter(subitem => subitem.day == item )
-    });
-
-    result.forEach(item => {
-      item.forEach((subitem, index) => {
-
-        if (index === 0) {
-          let trDayName = `<tr> 
-            <td colspan="4">${moment(subitem.day).format('DD.MM.YYYY')}</td>
-          </tr>`;
-
-          html += trDayName;
-        }
-
+      item.forEach((subitem, subindex) => {
         let columnGroupOrTeacher = '';
 
+        let tr;
+
+        // Если поиск по классам, то в 4 колонку выводим имя преподавателя
+        // если по преподавателям - то класс
         if (type === 'group') {
           columnGroupOrTeacher = subitem.teacher__fio;
         } else {
           columnGroupOrTeacher = subitem.group__name;
         }
 
-        let tr = `<tr> 
+        // Формирование первой колонки с датой
+        let dayColumn = '';
+        if (index == 0 && subindex == 0) {
+          dayColumn = `<td width="15%" rowspan="${getLength(day)}" align="center">${subitem.day}</td>`
+        }
+
+        // Если урок по подгруппам
+        if (item.length > 1) {
+
+          // Формирование первой колонки с временем урока
+          let timeColumn = '';
+          if (subindex == 0) {
+            timeColumn = `<td width="15%" rowspan="${item.length}" align="center">${subitem.time}</td>`
+          }
+
+          tr = `<tr> 
+            ${dayColumn}
+            ${timeColumn}
+            <td>${subitem.discipline}</td>
+            <td>${columnGroupOrTeacher}</td>
+            <td width="15%" align="center">${subitem.place}</td>
+          </tr>`
+        } else {
+          tr = `<tr> 
+            ${dayColumn}
             <td width="15%" align="center">${subitem.time}</td>
             <td>${subitem.discipline}</td>
             <td>${columnGroupOrTeacher}</td>
             <td width="15%" align="center">${subitem.place}</td>
-          </tr>`;
+          </tr>`
+        }
 
-          html += tr;
+        subHtml += tr;
       })
+
+      html += subHtml;
     })
-
-  } else {
-    data.forEach(item => {
-      let columnGroupOrTeacher = '';
-
-      if (type === 'group') {
-        columnGroupOrTeacher = item.teacher__fio;
-      } else {
-        columnGroupOrTeacher = item.group__name;
-      }
-
-      let tr = `<tr> 
-        <td width="15%" align="center">${item.time}</td>
-        <td>${item.discipline}</td>
-        <td>${item.teacher__fio}</td>
-        <td width="15%" align="center">${item.place}</td>
-      </tr>`;
-
-      html += tr;
-    });
-  }
+  });
 
   tbody.innerHTML = html;
 }
