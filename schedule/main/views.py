@@ -31,22 +31,43 @@ class HomePageView(TemplateView):
 
 class SearchSchedule(View):
     def get(self, request):
-        select_value = int(request.GET.get('selectValue'))
+        select_group = int(request.GET.get('selectGroup'))
+        select_teacher = int(request.GET.get('selectTeacher'))
         select_date = request.GET.getlist('selectDate[]')
+
+        type_schedule = request.GET.get('type')
+
+        if not select_date:
+            return JsonResponse(data=[], safe=False)
 
         date_from = datetime.datetime.strptime(select_date[0], '%Y-%m-%d')
 
-        if len(select_date) == 1:
-            schedule_list = Schedule.objects.filter(
-                group = select_value,
-                day = date_from
-                ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('time')
+        if type_schedule == 'group':
+            if len(select_date) == 1:
+                schedule_list = Schedule.objects.filter(
+                    group = select_group,
+                    day = date_from
+                    ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('time')
 
-        elif len(select_date) == 2:
-            schedule_list = Schedule.objects.filter(
-                group = select_value,
-                day__range = select_date
-                ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('day', 'time')
+            elif len(select_date) == 2:
+                schedule_list = Schedule.objects.filter(
+                    group = select_group,
+                    day__range = select_date
+                    ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('day', 'time')
+
+        if type_schedule == 'teacher':
+            if len(select_date) == 1:
+                schedule_list = Schedule.objects.filter(
+                    teacher = select_teacher,
+                    day = date_from
+                    ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('time')
+
+            elif len(select_date) == 2:
+                schedule_list = Schedule.objects.filter(
+                    teacher = select_teacher,
+                    day__range = select_date
+                    ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('day', 'time')
+
 
         data = json.dumps(list(schedule_list), default = customDateSerialize)
 
