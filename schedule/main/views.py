@@ -8,7 +8,9 @@ import json
 import datetime
 
 from .models import Schedule, Teachers,Groups
+from.parser import Parser
 
+parser = Parser()
 
 def customDateSerialize(o):
     if isinstance(o, datetime.date):

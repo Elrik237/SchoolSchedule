@@ -2,7 +2,7 @@ from django.db import models
 
 class Teachers (models.Model):
 
-    fio = models.CharField("ФИО преподавателя" ,max_length=150)
+    fio = models.CharField("ФИО преподавателя", unique=True, max_length=150)
 
     class Meta:
         verbose_name = 'Список преподавателей'
@@ -13,7 +13,7 @@ class Teachers (models.Model):
 
 class Groups (models.Model):
 
-    name = models.CharField("Класса" ,max_length=3)
+    name = models.CharField("Класса", unique=True, max_length=3)
 
     class Meta:
         verbose_name = 'Список классов'
@@ -27,8 +27,8 @@ class Schedule (models.Model):
     day = models.DateField("Дата" ,max_length=150)
     time = models.CharField("Время" ,max_length=150)
     discipline = models.CharField("Дисциплина" ,max_length=250)
-    teacher  = models.ForeignKey(Teachers, on_delete=models.CASCADE,)
-    group  = models.ForeignKey(Groups, on_delete=models.CASCADE,)
+    teacher  = models.ForeignKey(Teachers, to_field='fio', on_delete=models.CASCADE,)
+    group  = models.ForeignKey(Groups, to_field='name', on_delete=models.CASCADE,)
     place = models.CharField(max_length=250)
 
     class Meta:
