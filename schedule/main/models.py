@@ -36,4 +36,4 @@ class Schedule (models.Model):
         verbose_name_plural = 'Рассписание уроков'
 
     def __str__(self):
-        return "Schedule"
+        return '{}/{}/{}'.format(self.group, self.day, self.discipline)

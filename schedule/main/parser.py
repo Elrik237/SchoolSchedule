@@ -4,26 +4,26 @@ from .models import Schedule, Teachers, Groups
 
 class Parser():
     def __init__(self):
-        self.parser_day()
+        # self.parser_day()
         self.parser_quarter()       
         
 
     def parser_day(self):
-        db_schedule = Schedule()
-        db_teacher = Teachers ()
-        db_group = Groups()
-
 
         schedule = pd.read_excel("D:\\Projects\\i_am\\table\\Raspisanie_klassy_ChETVERG_07_10.xlsx", 
                 header=2, index_col=None, na_values=["NA"], na_filter = False)
 
-        line_count = schedule.shape[0]
 
+        line_count = schedule.shape[0]
+        
         groups  = schedule.columns.values.tolist()
         group_list = []
 
         for group in groups:
             if group != 'Время' and group != '№' and len(group) <= 3:
+
+                
+
                 group_list.append(group)
 
         column = 4
@@ -31,11 +31,8 @@ class Parser():
         
         for group in group_list:
 
-            db_group.name = group
+            save_group = Groups.objects.get_or_create(name = group)
 
-            db_group.save()
-
-            print(f"Класс: {group}")
             count = 1
             line = 1
 
@@ -59,48 +56,292 @@ class Parser():
                     line += 2
                     continue
                 else:
-
                     if len(lesson) == 6:
-                        db_teacher.fio = {lesson[2]}
+                    
+                        if (lesson[2])[-1] == '1':
+                            save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                            save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
+                                                teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
 
-                        db_teacher.save()
+                            save_lesson.save()
+                        elif (lesson[2])[-1] == '2':
+                            save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                            save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
+                                                teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
 
-                        db_schedule.day = "07.10.2021"
-                        db_schedule.time = {lesson[0]}
-                        db_schedule.discipline = {lesson[1]}
-                        db_schedule.teacher = {lesson[2]}
-                        db_schedule.group = group
-                        db_schedule.place = {lesson[5]}
+                            save_lesson.save()
+                        else:
+                            save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
+                            save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = lesson[1],
+                                                teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
+
+                            save_lesson.save()
                         
-                        db_schedule.save()
-
-                        # print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                        #         f"Преподаватель: {lesson[2]}, Аудитория: {lesson[5]}")
+                        
 
                         count += 1
                         line += 2
-                    elif len(lesson) == 10:
-                        print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, " 
-                                f"Аудитория: {lesson[7]} {lesson[3]} {lesson[9]}")
+                    elif len(lesson) == 10:                    
+                        try:
+                            if (lesson[2])[-1] == '1':
+                                get_teacher_one = (lesson[2])[0:-2]
+                                save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                            elif (lesson[2])[-1] == '2':
+                                get_teacher_two = lesson[2][0:-2]
+                                save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                            else:
+                                get_teacher_one = lesson[2]
+                                save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+
+                            if (lesson[4])[-1] == '1':
+                                get_teacher_one = (lesson[4])[0:-2]
+                                save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                            elif (lesson[4])[-1] == '2':
+                                get_teacher_two = lesson[4][0:-2]
+                                save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                            else:
+                                get_teacher_two = lesson[4]
+                                save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+
+
+                            if (lesson[7])[-1] == '1':
+                                get_place_one = (lesson[7])[0:-2]
+                                place_one = get_place_one
+                            elif (lesson[7])[-1] == '2':
+                                get_place_two = lesson[7][0:-2]
+                                place_two = get_place_two
+                            else:
+                                get_place_one = lesson[7]
+                                place_one = get_place_one
+
+                            if (lesson[9])[-1] == '1':
+                                get_place_one = (lesson[9])[0:-2]
+                                place_one = get_place_one
+                            elif (lesson[9])[-1] == '2':
+                                get_place_two = lesson[9][0:-2]
+                                place_two = get_place_two
+                            else:
+                                get_place_two = lesson[9]
+                                place_two = get_place_two
+
+                            save_lesson_one = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
+
+                            save_lesson_one.save()
+
+                            save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                            save_lesson_two.save()
+                            
+
+                        except:
+                            if (lesson[2])[-1] == '1':
+                                save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
+                                                    teacher  = save_teacher[0], group = save_group[0], place = place_one)
+
+                                save_lesson.save()
+                            elif (lesson[2])[-1] == '2':
+                                save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
+                                                    teacher  = save_teacher[0], group = save_group[0], place = place_one)
+
+                                save_lesson.save()
+                            else:
+                                save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
+                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = lesson[1],
+                                                    teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
+
+                                save_lesson.save()
+
+
                         count += 1
                         line += 2
                     else:
-                        if lesson[5]:
-                            print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, " 
-                                f"Аудитория: {lesson[9]} {lesson[3]} {lesson[11]} "
-                                f"Предмет: {lesson[5]}, Преподаватель: {lesson[6]}, " 
-                                f"Аудитория: {lesson[13]}")
-                        else:
-                            print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, " 
-                                f"Аудитория: {lesson[9]} {lesson[3]} {lesson[11]} ")
+                        try:
+                            if (lesson[2])[-1] == '1':
+                                get_teacher_one = (lesson[2])[0:-2]
+                                save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                            elif (lesson[2])[-1] == '2':
+                                get_teacher_two = lesson[2][0:-2]
+                                save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                            elif (lesson[2])[-1] == '3':
+                                get_teacher_three = lesson[2][0:-2]
+                                save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+                            else:
+                                get_teacher_one = lesson[2]
+                                save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+
+                            if (lesson[4])[-1] == '1':
+                                get_teacher_one = (lesson[4])[0:-2]
+                                save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                            elif (lesson[4])[-1] == '2':
+                                get_teacher_two = lesson[4][0:-2]
+                                save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                            elif (lesson[4])[-1] == '3':
+                                get_teacher_three = lesson[2][0:-2]
+                                save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+                            else:
+                                get_teacher_two = lesson[4]
+                                save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+
+                            if (lesson[6])[-1] == '1':
+                                get_teacher_one = (lesson[6])[0:-2]
+                                save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                            elif (lesson[6])[-1] == '2':
+                                get_teacher_two = lesson[6][0:-2]
+                                save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                            elif (lesson[6])[-1] == '3':
+                                get_teacher_three = lesson[2][0:-2]
+                                save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+                            else:
+                                get_teacher_three = lesson[6]
+                                save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+
+
+                            if (lesson[9])[-1] == '1':
+                                get_place_one = (lesson[9])[0:-2]
+                                place_one = get_place_one
+                            elif (lesson[9])[-1] == '2':
+                                get_place_two = lesson[9][0:-2]
+                                place_two = get_place_two
+                            elif (lesson[9])[-1] == '3':
+                                get_place_three = lesson[9][0:-2]
+                                place_three = get_place_three
+                            else:
+                                get_place_one = lesson[9]
+                                place_one = get_place_one
+
+                            if (lesson[11])[-1] == '1':
+                                get_place_one = (lesson[11])[0:-2]
+                                place_one = get_place_one
+                            elif (lesson[11])[-1] == '2':
+                                get_place_two = lesson[11][0:-2]
+                                place_two = get_place_two
+                            elif (lesson[11])[-1] == '3':
+                                get_place_three = lesson[11][0:-2]
+                                place_three = get_place_three
+                            else:
+                                get_place_two = lesson[11]
+                                place_two = get_place_two
+
+                            if (lesson[13])[-1] == '1':
+                                get_place_one = (lesson[13])[0:-2]
+                                place_one = get_place_one
+                            elif (lesson[13])[-1] == '2':
+                                get_place_two = lesson[13][0:-2]
+                                place_two = get_place_two
+                            elif (lesson[13])[-1] == '3':
+                                get_place_three = lesson[13][0:-2]
+                                place_three = get_place_three
+                            else:
+                                get_place_three = lesson[13]
+                                place_three = get_place_three
+
+                            save_lesson_one = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
+
+                            save_lesson_one.save()
+
+                            
+                            save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                            save_lesson_two.save()
+
+
+                            if lesson[5]:
+                                if (lesson[5])[0] == "/":
+                                    save_lesson_three = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 3)",
+                                                        teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
+
+                                    save_lesson_three.save()
+                                else:
+                                    save_lesson_three = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[5]} (группа 3)",
+                                                        teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
+
+                                    save_lesson_three.save()
+
+                        except:
+                            try:
+                                if (lesson[2])[-1] == '1':
+                                    get_teacher_one = (lesson[2])[0:-2]
+                                    save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                elif (lesson[2])[-1] == '2':
+                                    get_teacher_two = lesson[2][0:-2]
+                                    save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                else:
+                                    get_teacher_one = lesson[2]
+                                    save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+
+                                if (lesson[4])[-1] == '1':
+                                    get_teacher_one = (lesson[4])[0:-2]
+                                    save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                elif (lesson[4])[-1] == '2':
+                                    get_teacher_two = lesson[4][0:-2]
+                                    save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                else:
+                                    get_teacher_two = lesson[4]
+                                    save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+
+
+                                if (lesson[9])[-1] == '1':
+                                    get_place_one = (lesson[9])[0:-2]
+                                    place_one = get_place_one
+                                elif (lesson[9])[-1] == '2':
+                                    get_place_two = lesson[9][0:-2]
+                                    place_two = get_place_two
+                                else:
+                                    get_place_one = lesson[9]
+                                    place_one = get_place_one
+
+                                if (lesson[11])[-1] == '1':
+                                    get_place_one = (lesson[11])[0:-2]
+                                    place_one = get_place_one
+                                elif (lesson[11])[-1] == '2':
+                                    get_place_two = lesson[11][0:-2]
+                                    place_two = get_place_two
+                                else:
+                                    get_place_two = lesson[11]
+                                    place_two = get_place_two
+
+                                save_lesson_one = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                    teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
+
+                                save_lesson_one.save()
+
+
+                                if lesson[5]:
+                                    if (lesson[5])[0] == "/":
+                                        save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 2)",
+                                                            teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                        save_lesson_two.save()
+                                    else:
+                                        save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[5]} (группа 2)",
+                                                            teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                        save_lesson_two.save()
+                                else:
+                                    save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                        teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                    save_lesson_two.save()
+                            
+
+                            except:
+                                save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
+
+                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = lesson[1],
+                                                        teacher  = save_teacher[0], group = save_group[0], place = lesson[9])
+
+                                save_lesson.save()
+
+
                         count += 1
                         line += 2
-
-
-            
+     
             if  f"Unnamed: {column+3}" in schedule.columns and f"Unnamed: {column+5}" in schedule.columns:
                 column += 6
             elif f"Unnamed: {column+3}" in schedule.columns:
@@ -124,6 +365,7 @@ class Parser():
 
 
         list_day = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье', ]
+        list_data = {'Понедельник':"2021-10-11", 'Вторник':"2021-10-12", 'Среда':"2021-10-13", 'Четверг':"2021-10-14", 'Пятница':"2021-10-15", 'Суббота':"2021-10-16", 'Воскресенье':"2021-10-17"}
         
 
         width_colums = {}
@@ -132,8 +374,8 @@ class Parser():
         column_count = schedule.columns[-1]
 
         # первый столбец на день  
-        for g in group_list:
-            x = schedule[g:].head(3).values.tolist()
+        for group in group_list:
+            x = schedule[group:].head(3).values.tolist()
             column_start = 2
             width_colum = {}
             new_list_day =[]
@@ -142,23 +384,24 @@ class Parser():
                     column_start +=1
                 elif i in list_day:
                     width_colum[i] = [column_start,] 
-                    width_colums[g] = width_colum
+                    width_colums[group] = width_colum
                     new_list_day.append(i)
                     column_start +=1
 
-            new_list_day_to_group[g] = new_list_day # учебные дни для конкретной группы
+            new_list_day_to_group[group] = new_list_day # учебные дни для конкретной группы
 
 
         # последний столбец на день   
-        for g in group_list:
+        for group in group_list:
+
             new_width_colums = width_colums
             count_day = 0
-            for d in new_list_day_to_group[g]:
+            for d in new_list_day_to_group[group]:
                 try:
                     count_day +=1
-                    next_day = new_list_day_to_group[g][count_day] # следующий день
-                    first_column_next_day = new_width_colums[g][next_day][0] # первый столбец следующего дня у конкретного класса 
-                    width_colums[g][d].append(first_column_next_day-1) # к индексу первого столбеца за конкретный день у конкретного класса 
+                    next_day = new_list_day_to_group[group][count_day] # следующий день
+                    first_column_next_day = new_width_colums[group][next_day][0] # первый столбец следующего дня у конкретного класса 
+                    width_colums[group][d].append(first_column_next_day-1) # к индексу первого столбеца за конкретный день у конкретного класса 
                                                                     # добавляем  индекс последний
                 except: 
                     pass
@@ -166,19 +409,20 @@ class Parser():
 
         count_group = 0
 
-        for g in group_list:
-            print(g)
+        for group in group_list:
+
+            save_group = Groups.objects.get_or_create(name = group)
+
             count_group +=1
             step = []
-            y = width_colums[g]
+            y = width_colums[group]
             try:
-                if g == group_list[-1]:
-                    step = [g, None]
+                if group == group_list[-1]:
+                    step = [group, None]
                 else:
-                    step = [g, group_list[count_group]]
+                    step = [group, group_list[count_group]]
 
-                for d in new_list_day_to_group[g]:
-                    print(d)
+                for d in new_list_day_to_group[group]:
                     count = 1
                     index = 0
                     if len(y[d]) == 2:
@@ -196,61 +440,354 @@ class Parser():
                         if lesson[0] != '' and lesson[0] != 'Время' and lesson[1] != '':
                             if len(lesson) == 3:
                                 try:
-                                    place = full_lesson_info[index+1]
+                                    place = (full_lesson_info[index+1])[2]
                                 except:
                                     place = ""
 
-                                if place == "":
-                                    print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                    f"Преподаватель: {lesson[2]}, Аудитория: {place}")
-                                else: 
-                                    print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                    f"Преподаватель: {lesson[2]}, Аудитория: {place[2]}")
-                                index += 1
-                                count += 1
+                                if (lesson[2])[-1] == '1':
+                                    save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                    save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                        teacher  = save_teacher[0], group = save_group[0], place = place)
+
+                                    save_lesson.save()
+                                elif (lesson[2])[-1] == '2':
+                                    save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                    save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                        teacher  = save_teacher[0], group = save_group[0], place = place)
+
+                                    save_lesson.save()
+                                else:
+                                    save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
+                                    save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = lesson[1],
+                                                        teacher  = save_teacher[0], group = save_group[0], place = place)
+
                                 
+                                index += 1
+                                count += 1     
                             elif len(lesson) == 5:
                                 try:
                                     place = full_lesson_info[index+1]
+
+                                    if (place[2])[-1] == '1':
+                                        get_place_one = (place[2])[0:-2]
+                                        place_one = get_place_one
+                                    elif (place[2])[-1] == '2':
+                                        get_place_two = place[2][0:-2]
+                                        place_two = get_place_two
+                                    else:
+                                        get_place_one = place[2]
+                                        place_one = get_place_one
+
+                                    if (place[4])[-1] == '1':
+                                        get_place_one = (place[4])[0:-2]
+                                        place_one = get_place_one
+                                    elif (place[4])[-1] == '2':
+                                        get_place_two = place[4][0:-2]
+                                        place_two = get_place_two
+                                    else:
+                                        get_place_two = place[4]
+                                        place_two = get_place_two
                                 except:
-                                    place = ""
-                                if place == "":
-                                    print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                    f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, Аудитория: {place}")
-                                else: 
-                                    print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                    f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, Аудитория: {place[2]} "
-                                                    f"{lesson[3]} {place[4]}")
+                                    try:
+                                        place_one = (full_lesson_info[index+1])[2]
+                                        place_two = ""
+                                    except:
+                                        place_one = ""
+                                        place_two = ""
+                                
+                                
+                                try:
+                                    if (lesson[2])[-1] == '1':
+                                        get_teacher_one = (lesson[2])[0:-2]
+                                        save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                    elif (lesson[2])[-1] == '2':
+                                        get_teacher_two = lesson[2][0:-2]
+                                        save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                    else:
+                                        get_teacher_one = lesson[2]
+                                        save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+
+                                    if (lesson[4])[-1] == '1':
+                                        get_teacher_one = (lesson[4])[0:-2]
+                                        save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                    elif (lesson[4])[-1] == '2':
+                                        get_teacher_two = lesson[4][0:-2]
+                                        save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                    else:
+                                        get_teacher_two = lesson[4]
+                                        save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+
+
+                                    
+
+                                    save_lesson_one = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                        teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
+
+                                    save_lesson_one.save()
+
+                                    save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                        teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                    save_lesson_two.save()
+                                    
+                                except:
+                                    if (lesson[2])[-1] == '1':
+                                        save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                        save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
+                                                            teacher  = save_teacher[0], group = save_group[0], place = place_one)
+
+                                        save_lesson.save()
+                                    elif (lesson[2])[-1] == '2':
+                                        save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                        save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
+                                                            teacher  = save_teacher[0], group = save_group[0], place = place_two)
+
+                                        save_lesson.save()
+                                    else:
+                                        save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
+                                        save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = lesson[1],
+                                                            teacher  = save_teacher[0], group = save_group[0], place = place_one)
+
+                                        save_lesson.save()
+
+                                    
                                 index += 1
                                 count += 1
                             else:
                                 try:
                                     place = full_lesson_info[index+1]
+                                    if lesson[5] != "":
+                                        if (place[2])[-1] == '1':
+                                            get_place_one = (place[2])[0:-2]
+                                            place_one = get_place_one
+                                        elif (place[2])[-1] == '2':
+                                            get_place_two = place[2][0:-2]
+                                            place_two = get_place_two
+                                        elif (place[2])[-1] == '3':
+                                            get_place_three = place[2][0:-2]
+                                            place_three = get_place_three
+                                        else:
+                                            get_place_one = place[2]
+                                            place_one = get_place_one
+
+                                        if (place[4])[-1] == '1':
+                                            get_place_one = (place[4])[0:-2]
+                                            place_one = get_place_one
+                                        elif (place[4])[-1] == '2':
+                                            get_place_two = place[4][0:-2]
+                                            place_two = get_place_two
+                                        elif (place[4])[-1] == '3':
+                                            get_place_three = place[4][0:-2]
+                                            place_three = get_place_three
+                                        else:
+                                            get_place_two = place[4]
+                                            place_two = get_place_two
+
+                                        if (place[6])[-1] == '1':
+                                            get_place_one = (place[6])[0:-2]
+                                            place_one = get_place_one
+                                        elif (place[6])[-1] == '2':
+                                            get_place_two = place[6][0:-2]
+                                            place_two = get_place_two
+                                        elif (place[6])[-1] == '3':
+                                            get_place_three = place[6][0:-2]
+                                            place_three = get_place_three
+                                        else:
+                                            get_place_three = place[6]
+                                            place_three = get_place_three
+                                    else:
+                                        if (place[2])[-1] == '1':
+                                            get_place_one = (place[2])[0:-2]
+                                            place_one = get_place_one
+                                        elif (place[2])[-1] == '2':
+                                            get_place_two = place[2][0:-2]
+                                            place_two = get_place_two
+                                        else:
+                                            get_place_one = place[2]
+                                            place_one = get_place_one
+
+                                        if (place[4])[-1] == '1':
+                                            get_place_one = (place[4])[0:-2]
+                                            place_one = get_place_one
+                                        elif (place[4])[-1] == '2':
+                                            get_place_two = place[4][0:-2]
+                                            place_two = get_place_two
+                                        else:
+                                            get_place_two = place[4]
+                                            place_two = get_place_two
+                                
                                 except:
-                                    place = ""
+                                    place_one = ""
+                                    place_two= ""
+                                    place_three = ""
+                                    
+                                
+                                try:
+                                    if (lesson[2])[-1] == '1':
+                                        get_teacher_one = (lesson[2])[0:-2]
+                                        save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                    elif (lesson[2])[-1] == '2':
+                                        get_teacher_two = lesson[2][0:-2]
+                                        save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                    elif (lesson[2])[-1] == '3':
+                                        get_teacher_three = lesson[2][0:-2]
+                                        save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+                                    else:
+                                        get_teacher_one = lesson[2]
+                                        save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
 
-                                if lesson[5] != "":
-                                    if place == "":
-                                        print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                        f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, Аудитория: {place} "
-                                                        f"Предмет: {lesson[5]}, " 
-                                                        f"Преподаватель: {lesson[6]}, Аудитория: {place}")
-                                    else: 
-                                        print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                        f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, Аудитория: {place[2]} "
-                                                        f"{lesson[3]} {place[4]} Предмет: {lesson[5]}, " 
-                                                        f"Преподаватель: {lesson[6]}, Аудитория: {place[6]}")
+                                    if (lesson[4])[-1] == '1':
+                                        get_teacher_one = (lesson[4])[0:-2]
+                                        save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                    elif (lesson[4])[-1] == '2':
+                                        get_teacher_two = lesson[4][0:-2]
+                                        save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                    elif (lesson[4])[-1] == '3':
+                                        get_teacher_three = lesson[2][0:-2]
+                                        save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+                                    else:
+                                        get_teacher_two = lesson[4]
+                                        save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
 
-                                else:
-                                    if place == "":
-                                        print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                        f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, Аудитория: {place}")
-                                    else: 
-                                        print(f"Урок №{count}, Время урока: {lesson[0]}, Предмет: {lesson[1]}, " 
-                                                        f"Преподаватель: {lesson[2]} {lesson[3]} {lesson[4]}, Аудитория: {place[2]} {lesson[3]} {place[4]}")
+                                    if (lesson[6])[-1] == '1':
+                                        get_teacher_one = (lesson[6])[0:-2]
+                                        save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                    elif (lesson[6])[-1] == '2':
+                                        get_teacher_two = lesson[6][0:-2]
+                                        save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                    elif (lesson[6])[-1] == '3':
+                                        get_teacher_three = lesson[2][0:-2]
+                                        save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+                                    else:
+                                        get_teacher_three = lesson[6]
+                                        save_teacher_three = Teachers.objects.get_or_create(fio = get_teacher_three)
+
+
+                                   
+
+                                    save_lesson_one = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                        teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
+
+                                    save_lesson_one.save()
+
+                                    
+                                    save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                        teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                    save_lesson_two.save()
+
+
+                                    if lesson[5]:
+                                        if (lesson[5])[0] == "/":
+                                            save_lesson_three = Schedule(day = list_data[d], time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 3)",
+                                                                teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
+
+                                            save_lesson_three.save()
+                                        else:
+                                            save_lesson_three = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[5]} (группа 3)",
+                                                                teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
+
+                                            save_lesson_three.save()
+
+                                except:
+                                    try:
+                                        try:
+                                            place = full_lesson_info[index+1]
+
+                                            if (place[2])[-1] == '1':
+                                                get_place_one = (place[2])[0:-2]
+                                                place_one = get_place_one
+                                            elif (place[2])[-1] == '2':
+                                                get_place_two = place[2][0:-2]
+                                                place_two = get_place_two
+                                            else:
+                                                get_place_one = place[2]
+                                                place_one = get_place_one
+
+                                            if (place[4])[-1] == '1':
+                                                get_place_one = (place[4])[0:-2]
+                                                place_one = get_place_one
+                                            elif (place[4])[-1] == '2':
+                                                get_place_two = place[4][0:-2]
+                                                place_two = get_place_two
+                                            else:
+                                                get_place_two = place[4]
+                                                place_two = get_place_two
+                                        except:
+                                            place_one = ""
+                                            place_two= ""
+                                    
+                                        if (lesson[2])[-1] == '1':
+                                            get_teacher_one = (lesson[2])[0:-2]
+                                            save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                        elif (lesson[2])[-1] == '2':
+                                            get_teacher_two = lesson[2][0:-2]
+                                            save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                        else:
+                                            get_teacher_one = lesson[2]
+                                            save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+
+                                        if (lesson[4])[-1] == '1':
+                                            get_teacher_one = (lesson[4])[0:-2]
+                                            save_teacher_one = Teachers.objects.get_or_create(fio = get_teacher_one)
+                                        elif (lesson[4])[-1] == '2':
+                                            get_teacher_two = lesson[4][0:-2]
+                                            save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+                                        else:
+                                            get_teacher_two = lesson[4]
+                                            save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
+
+
+                                        save_lesson_one = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                            teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
+
+                                        save_lesson_one.save()
+
+
+                                        if lesson[5]:
+                                            if (lesson[5])[0] == "/":
+                                                save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 2)",
+                                                                    teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                                save_lesson_two.save()
+                                            else:
+                                                save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[5]} (группа 2)",
+                                                                    teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                                save_lesson_two.save()
+                                        else:
+                                            save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                                teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                            save_lesson_two.save()
+                                    
+                                    except:
+                                        try:
+                                            place = (full_lesson_info[index+1])[2]
+                                        except:
+                                            place = ""
+
+                                        if (lesson[2])[-1] == '1':
+                                            save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                            save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                                                teacher  = save_teacher[0], group = save_group[0], place = place)
+
+                                            save_lesson.save()
+                                        elif (lesson[2])[-1] == '2':
+                                            save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
+                                            save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                                teacher  = save_teacher[0], group = save_group[0], place = place)
+
+                                            save_lesson.save()
+                                        else:
+                                            save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
+                                            save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = lesson[1],
+                                                                teacher  = save_teacher[0], group = save_group[0], place = place)
+
+                                        
+                                        index += 1
+                                        count += 1
                         
-                                index += 1
-                                count += 1
                         else:
                             index += 1
             
