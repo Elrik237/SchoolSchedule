@@ -4,25 +4,34 @@ from django.conf import settings
 from .models import Schedule, Teachers, Groups
 import pandas as pd
 
+from isoweek import Week
+
 
 
 class Parser():
-    def __init__(self, event):
-        # print(1, event.src_path)
 
+    def start(self, event):
+        
         name = (event.src_path.split('\\'))[-1]
         
-        if "на день" in name:
-            self.parser_day(name)
-        elif "на неделю" in name:
-            print(2)
-            # self.parser_quarter(name) 
-        else:
-            print(3)
-     
-        
+        print(name)
 
-    def parser_day(self, name):
+        if "на день" in name:
+            date = (name[-15:-5]).split('.')
+            db_date = f"{date[2]}-{date[1]}-{date[0]}"
+            self.parser_day(name, db_date)
+        elif "на неделю" in name:
+            x = (name.split('№'))[1] 
+            y = (x.split('.'))[0]
+            z = y.split('_')
+            year = int(z[1])
+            week = int(z[0])
+            self.parser_quarter(name, year, week) 
+        else:
+            print("Не подходящий фомат excel")
+
+
+    def parser_day(self, name, date):
 
         schedule = pd.read_excel(f"{settings.MEDIA_ROOT}\\{name}", 
                 header=2, index_col=None, na_values=["NA"], na_filter = False)
@@ -75,19 +84,19 @@ class Parser():
                     
                         if (lesson[2])[-1] == '1':
                             save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                            save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
+                            save_lesson = Schedule(day = date, time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
                                                 teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
 
                             save_lesson.save()
                         elif (lesson[2])[-1] == '2':
                             save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                            save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
+                            save_lesson = Schedule(day = date, time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
                                                 teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
 
                             save_lesson.save()
                         else:
                             save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
-                            save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = lesson[1],
+                            save_lesson = Schedule(day = date, time = lesson[0], discipline = lesson[1],
                                                 teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
 
                             save_lesson.save()
@@ -139,34 +148,40 @@ class Parser():
                                 get_place_two = lesson[9]
                                 place_two = get_place_two
 
-                            save_lesson_one = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                            save_lesson_one = Schedule(day = date, time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                 teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
 
                             save_lesson_one.save()
 
-                            save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
-                                                teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+                            if lesson[3] != "/":
+                                save_lesson_two = Schedule(day = date, time = lesson[0], discipline = f"{(lesson[3])[1:]} (группа 2)",
+                                                    teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
-                            save_lesson_two.save()
+                                save_lesson_two.save()
+                            else:
+                                save_lesson_two = Schedule(day = date, time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                                    teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
+
+                                save_lesson_two.save()
                             
 
                         except:
                             if (lesson[2])[-1] == '1':
                                 save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
+                                save_lesson = Schedule(day = date, time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
                                                     teacher  = save_teacher[0], group = save_group[0], place = place_one)
 
                                 save_lesson.save()
                             elif (lesson[2])[-1] == '2':
                                 save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
+                                save_lesson = Schedule(day = date, time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
                                                     teacher  = save_teacher[0], group = save_group[0], place = place_one)
 
                                 save_lesson.save()
                             else:
                                 save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
-                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = lesson[1],
-                                                    teacher  = save_teacher[0], group = save_group[0], place = lesson[5])
+                                save_lesson = Schedule(day = date, time = lesson[0], discipline = lesson[1],
+                                                    teacher  = save_teacher[0], group = save_group[0], place = lesson[7])
 
                                 save_lesson.save()
 
@@ -254,13 +269,13 @@ class Parser():
                                 get_place_three = lesson[13]
                                 place_three = get_place_three
 
-                            save_lesson_one = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                            save_lesson_one = Schedule(day = date, time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                 teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
 
                             save_lesson_one.save()
 
                             
-                            save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                            save_lesson_two = Schedule(day = date, time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                 teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                             save_lesson_two.save()
@@ -268,12 +283,12 @@ class Parser():
 
                             if lesson[5]:
                                 if (lesson[5])[0] == "/":
-                                    save_lesson_three = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 3)",
+                                    save_lesson_three = Schedule(day = date, time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 3)",
                                                         teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
 
                                     save_lesson_three.save()
                                 else:
-                                    save_lesson_three = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[5]} (группа 3)",
+                                    save_lesson_three = Schedule(day = date, time = lesson[0], discipline = f"{lesson[5]} (группа 3)",
                                                         teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
 
                                     save_lesson_three.save()
@@ -321,7 +336,7 @@ class Parser():
                                     get_place_two = lesson[11]
                                     place_two = get_place_two
 
-                                save_lesson_one = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                save_lesson_one = Schedule(day = date, time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                     teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
 
                                 save_lesson_one.save()
@@ -329,17 +344,17 @@ class Parser():
 
                                 if lesson[5]:
                                     if (lesson[5])[0] == "/":
-                                        save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 2)",
+                                        save_lesson_two = Schedule(day = date, time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 2)",
                                                             teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                         save_lesson_two.save()
                                     else:
-                                        save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[5]} (группа 2)",
+                                        save_lesson_two = Schedule(day = date, time = lesson[0], discipline = f"{lesson[5]} (группа 2)",
                                                             teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                         save_lesson_two.save()
                                 else:
-                                    save_lesson_two = Schedule(day = "2021-10-07", time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                    save_lesson_two = Schedule(day = date, time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                         teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                     save_lesson_two.save()
@@ -348,7 +363,7 @@ class Parser():
                             except:
                                 save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
 
-                                save_lesson = Schedule(day = "2021-10-07", time = lesson[0], discipline = lesson[1],
+                                save_lesson = Schedule(day = date, time = lesson[0], discipline = lesson[1],
                                                         teacher  = save_teacher[0], group = save_group[0], place = lesson[9])
 
                                 save_lesson.save()
@@ -364,9 +379,8 @@ class Parser():
             else:
                 column += 2
         
-        
 
-    def parser_quarter(self, name):
+    def parser_quarter(self, name, year, week):
 
         schedule = pd.read_excel(f"{settings.MEDIA_ROOT}\\{name}", 
                 header = None, index_col=0, na_values=["NA"], na_filter = False)
@@ -379,9 +393,7 @@ class Parser():
                 group_list.append(group)
 
 
-        list_day = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье', ]
-        list_data = {'Понедельник':"2021-10-11", 'Вторник':"2021-10-12", 'Среда':"2021-10-13", 'Четверг':"2021-10-14", 'Пятница':"2021-10-15", 'Суббота':"2021-10-16", 'Воскресенье':"2021-10-17"}
-        
+        list_day = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье', ]      
 
         width_colums = {}
         new_list_day_to_group = {}
@@ -462,19 +474,19 @@ class Parser():
 
                                 if (lesson[2])[-1] == '1':
                                     save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                    save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                    save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                         teacher  = save_teacher[0], group = save_group[0], place = place)
 
                                     save_lesson.save()
                                 elif (lesson[2])[-1] == '2':
                                     save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                    save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                    save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                         teacher  = save_teacher[0], group = save_group[0], place = place)
 
                                     save_lesson.save()
                                 else:
                                     save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
-                                    save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = lesson[1],
+                                    save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = lesson[1],
                                                         teacher  = save_teacher[0], group = save_group[0], place = place)
 
                                 
@@ -536,12 +548,12 @@ class Parser():
 
                                     
 
-                                    save_lesson_one = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                    save_lesson_one = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                         teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
 
                                     save_lesson_one.save()
 
-                                    save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                    save_lesson_two = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                         teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                     save_lesson_two.save()
@@ -549,19 +561,19 @@ class Parser():
                                 except:
                                     if (lesson[2])[-1] == '1':
                                         save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                        save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
+                                        save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[2]} (группа 1)",
                                                             teacher  = save_teacher[0], group = save_group[0], place = place_one)
 
                                         save_lesson.save()
                                     elif (lesson[2])[-1] == '2':
                                         save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                        save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
+                                        save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[2]} (группа 2)",
                                                             teacher  = save_teacher[0], group = save_group[0], place = place_two)
 
                                         save_lesson.save()
                                     else:
                                         save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
-                                        save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = lesson[1],
+                                        save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = lesson[1],
                                                             teacher  = save_teacher[0], group = save_group[0], place = place_one)
 
                                         save_lesson.save()
@@ -681,13 +693,13 @@ class Parser():
 
                                    
 
-                                    save_lesson_one = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                    save_lesson_one = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                         teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
 
                                     save_lesson_one.save()
 
                                     
-                                    save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                    save_lesson_two = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                         teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                     save_lesson_two.save()
@@ -695,12 +707,12 @@ class Parser():
 
                                     if lesson[5]:
                                         if (lesson[5])[0] == "/":
-                                            save_lesson_three = Schedule(day = list_data[d], time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 3)",
+                                            save_lesson_three = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 3)",
                                                                 teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
 
                                             save_lesson_three.save()
                                         else:
-                                            save_lesson_three = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[5]} (группа 3)",
+                                            save_lesson_three = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[5]} (группа 3)",
                                                                 teacher  = save_teacher_three[0], group = save_group[0], place = place_three)
 
                                             save_lesson_three.save()
@@ -754,7 +766,7 @@ class Parser():
                                             save_teacher_two = Teachers.objects.get_or_create(fio = get_teacher_two)
 
 
-                                        save_lesson_one = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                        save_lesson_one = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                             teacher  = save_teacher_one[0], group = save_group[0], place = place_one)
 
                                         save_lesson_one.save()
@@ -762,17 +774,17 @@ class Parser():
 
                                         if lesson[5]:
                                             if (lesson[5])[0] == "/":
-                                                save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 2)",
+                                                save_lesson_two = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{(lesson[5])[1:-1]} (группа 2)",
                                                                     teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                                 save_lesson_two.save()
                                             else:
-                                                save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[5]} (группа 2)",
+                                                save_lesson_two = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[5]} (группа 2)",
                                                                     teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                                 save_lesson_two.save()
                                         else:
-                                            save_lesson_two = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                            save_lesson_two = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                                 teacher  = save_teacher_two[0], group = save_group[0], place = place_two)
 
                                             save_lesson_two.save()
@@ -785,19 +797,19 @@ class Parser():
 
                                         if (lesson[2])[-1] == '1':
                                             save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                            save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
+                                            save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                                 teacher  = save_teacher[0], group = save_group[0], place = place)
 
                                             save_lesson.save()
                                         elif (lesson[2])[-1] == '2':
                                             save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
-                                            save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
+                                            save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                                 teacher  = save_teacher[0], group = save_group[0], place = place)
 
                                             save_lesson.save()
                                         else:
                                             save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
-                                            save_lesson = Schedule(day = list_data[d], time = lesson[0], discipline = lesson[1],
+                                            save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = lesson[1],
                                                                 teacher  = save_teacher[0], group = save_group[0], place = place)
 
                                         
@@ -812,4 +824,19 @@ class Parser():
                 break
             
             
+    def get_date(self, day, year, week):
 
+        if day == "Понедельник":
+            return Week(year, week).monday()
+        elif day == "Вторник":
+            return Week(year, week).tuesday()
+        elif day == "Среда":
+            return Week(year, week).wednesday()
+        elif day == "Четверг":
+            return Week(year, week).thursday()
+        elif day == "Пятница":
+            return Week(year, week).friday()
+        elif day == "Суббота":
+            return Week(year, week).saturday()
+        elif day == "Воскресенье":
+            return Week(year, week).sunday()
