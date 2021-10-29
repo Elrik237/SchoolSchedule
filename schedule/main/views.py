@@ -9,13 +9,10 @@ import json
 import datetime
 
 from .models import Schedule, Teachers,Groups
-from.parser import Parser
-
 
 from operator import itemgetter
 from itertools import groupby
 
-parser = Parser()
 
 def customDateSerialize(o):
     if isinstance(o, datetime.date):

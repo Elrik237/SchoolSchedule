@@ -1,16 +1,30 @@
+import os
 
-import pandas as pd
+from django.conf import settings
 from .models import Schedule, Teachers, Groups
+import pandas as pd
+
+
 
 class Parser():
-    def __init__(self):
-        # self.parser_day()
-        self.parser_quarter()       
+    def __init__(self, event):
+        # print(1, event.src_path)
+
+        name = (event.src_path.split('\\'))[-1]
+        
+        if "на день" in name:
+            self.parser_day(name)
+        elif "на неделю" in name:
+            print(2)
+            # self.parser_quarter(name) 
+        else:
+            print(3)
+     
         
 
-    def parser_day(self):
+    def parser_day(self, name):
 
-        schedule = pd.read_excel("D:\\Projects\\i_am\\table\\Raspisanie_klassy_ChETVERG_07_10.xlsx", 
+        schedule = pd.read_excel(f"{settings.MEDIA_ROOT}\\{name}", 
                 header=2, index_col=None, na_values=["NA"], na_filter = False)
 
 
@@ -30,6 +44,7 @@ class Parser():
 
         
         for group in group_list:
+            print(f"Парсинг рассписания: {group}")
 
             save_group = Groups.objects.get_or_create(name = group)
 
@@ -351,9 +366,9 @@ class Parser():
         
         
 
-    def parser_quarter(self):
+    def parser_quarter(self, name):
 
-        schedule = pd.read_excel("D:\\Projects\\i_am\\table\\Raspisanie_vse_klassy_1_chetvert.xlsx", 
+        schedule = pd.read_excel(f"{settings.MEDIA_ROOT}\\{name}", 
                 header = None, index_col=0, na_values=["NA"], na_filter = False)
 
 
@@ -410,6 +425,7 @@ class Parser():
         count_group = 0
 
         for group in group_list:
+            print(f"Парсинг рассписания: {group}")
 
             save_group = Groups.objects.get_or_create(name = group)
 
