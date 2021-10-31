@@ -27,6 +27,7 @@ class Schedule (models.Model):
     day = models.DateField("Дата" ,max_length=150)
     time = models.CharField("Время" ,max_length=150)
     discipline = models.CharField("Дисциплина" ,max_length=250)
+    subgroup = models.IntegerField("Подгруппа", default=None, null=True)
     teacher  = models.ForeignKey(Teachers, to_field='fio', on_delete=models.CASCADE,)
     group  = models.ForeignKey(GroupsSchool, to_field='name', on_delete=models.CASCADE,)
     place = models.CharField(max_length=250)
