@@ -19,6 +19,13 @@ def customDateSerialize(o):
         return o.__str__()
 
 
+class DeleteAll(View):
+    def get(self, request):
+        Schedule.objects.all().delete()
+        Teachers.objects.all().delete()
+        GroupsSchool.objects.all().delete()
+
+
 class HomePageView(TemplateView):
 
     template_name = "home.html"
@@ -33,6 +40,8 @@ class HomePageView(TemplateView):
 
 class SearchSchedule(View):
     def get(self, request):
+
+        
 
         select_group = int(request.GET.get('selectGroup'))
         select_teacher = int(request.GET.get('selectTeacher'))
