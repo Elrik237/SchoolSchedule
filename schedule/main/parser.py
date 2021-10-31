@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from .models import Schedule, Teachers, Groups
+from .models import Schedule, Teachers, GroupsSchool
 import pandas as pd
 
 from isoweek import Week
@@ -55,7 +55,7 @@ class Parser():
         for group in group_list:
             print(f"Парсинг рассписания: {group}")
 
-            save_group = Groups.objects.get_or_create(name = group)
+            save_group = GroupsSchool.objects.get_or_create(name = group)
 
             count = 1
             line = 1
@@ -439,7 +439,7 @@ class Parser():
         for group in group_list:
             print(f"Парсинг рассписания: {group}")
 
-            save_group = Groups.objects.get_or_create(name = group)
+            save_group = GroupsSchool.objects.get_or_create(name = group)
 
             count_group +=1
             step = []

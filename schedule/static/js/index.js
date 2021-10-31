@@ -76,7 +76,7 @@ function submitSearchForm(event) {
   selectDate = selectDate.map(item => moment(item).format('YYYY-MM-DD'));
 
   if (checkFullWeekCheckbox) {
-    selectDate = [moment().startOf('week').format('YYYY-MM-DD'), moment().endOf('week').format('YYYY-MM-DD')];
+    selectDate = [moment(selectDate[0]).startOf('week').format('YYYY-MM-DD'), moment(selectDate[0]).endOf('week').format('YYYY-MM-DD')];
     dateText = `${moment(selectDate[0]).format('DD.MM.YYYY')} - ${moment(selectDate[1]).format('DD.MM.YYYY')}`
   } else {
     dateText = moment(selectDate[0]).format('DD.MM.YYYY')
@@ -84,7 +84,7 @@ function submitSearchForm(event) {
 
 
   document.querySelector('.main-info').style.display = 'flex';
-  document.getElementById('groupName').innerHTML = `класс: ${getSelectText()}`;
+  document.getElementById('groupName').innerHTML = `${getSelectText()}`;
   document.getElementById('date').innerHTML = `${dateText}`;
 
   let params = { selectGroup, selectTeacher, selectDate, type }
@@ -136,7 +136,7 @@ function showData(data, check) {
         // Формирование первой колонки с датой
         let dayColumn = '';
         if (index == 0 && subindex == 0) {
-          dayColumn = `<td width="15%" rowspan="${getLength(day)}" align="center">${subitem.day}</td>`
+          dayColumn = `<td width="15%" rowspan="${getLength(day)}" align="center">${moment(subitem.day).format('DD.MM.YYYY')}</td>`
         }
 
         // Если урок по подгруппам

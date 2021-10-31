@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{% static 'libs/datepicker/air-datepicker.css' %}">
   <link rel="stylesheet" href="{% static 'styles/css/index.min.css' %}">
   <title>Расписание</title>
@@ -31,16 +30,16 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="form-block column">
-              <p class="text">Дата</p>
-              <div id="datepicker"></div>
-            </div>
             <div class="form-block row">
               <p class="text">Показать на всю неделю</p>
               <input type="checkbox" class="checkbox" name="full_week" id="fullWeek" value="true">
               <label for="fullWeek"></label>
             </div>
             <div class="form-block column">
+              <p class="text">Дата</p>
+              <div id="datepicker"></div>
+            </div>
+            <div class="form-block column buttons">
               <button type="submit" class="button">Показать расписание</button>
               <button type="button" class="button" id="showForTeacher">Расписание преподавателя</button>
               <button type="button" class="button hide" id="showForGroup">Расписание класса</button>
@@ -49,29 +48,13 @@
         </aside>
         <main class="main">
           <div class="main-info" style="display: none;">
-            <p class="main-info__text" id="groupName">Класс <span class="selectClass"></span></p>
+            <p class="main-info__text" id="groupName"><span class="selectClass"></span></p>
             <p class="main-info__text" id="date"><span class="selectDate"></span></p>
           </div>
           <table class="table" id="table">
             <thead id="thead">
             </thead>
             <tbody id="tbody">  
-              <tr>
-                <td rowspan="3">1</td>
-                <td>2</td>
-                <td>3</td>
-                <td>3</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>3</td>
-                <td>3</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>3</td>
-                <td>3</td>
-              </tr>
             </tbody>
           </table>
         </main>

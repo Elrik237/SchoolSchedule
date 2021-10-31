@@ -11,7 +11,7 @@ class Teachers (models.Model):
     def __str__(self):
         return self.fio
 
-class Groups (models.Model):
+class GroupsSchool (models.Model):
 
     name = models.CharField("Класса", unique=True, max_length=3)
 
@@ -28,7 +28,7 @@ class Schedule (models.Model):
     time = models.CharField("Время" ,max_length=150)
     discipline = models.CharField("Дисциплина" ,max_length=250)
     teacher  = models.ForeignKey(Teachers, to_field='fio', on_delete=models.CASCADE,)
-    group  = models.ForeignKey(Groups, to_field='name', on_delete=models.CASCADE,)
+    group  = models.ForeignKey(GroupsSchool, to_field='name', on_delete=models.CASCADE,)
     place = models.CharField(max_length=250)
 
     class Meta:

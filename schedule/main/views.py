@@ -8,7 +8,7 @@ import pandas as pd
 import json 
 import datetime
 
-from .models import Schedule, Teachers,Groups
+from .models import Schedule, Teachers, GroupsSchool
 
 from operator import itemgetter
 from itertools import groupby
@@ -25,7 +25,7 @@ class HomePageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         teachers = Teachers.objects.all()
-        groups = Groups.objects.all()
+        groups = GroupsSchool.objects.all()
 
         context = {'teachers': teachers, 'groups':groups}
 
@@ -33,6 +33,7 @@ class HomePageView(TemplateView):
 
 class SearchSchedule(View):
     def get(self, request):
+
         select_group = int(request.GET.get('selectGroup'))
         select_teacher = int(request.GET.get('selectTeacher'))
         select_date = request.GET.getlist('selectDate[]')
@@ -48,20 +49,17 @@ class SearchSchedule(View):
             if len(select_date) == 1:
 
                 schedule_list = Schedule.objects.filter(
-                    group = select_group,
+                    group__id = select_group,
                     day = date_from
                     ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('time')
-
                 schedule_list = self.group(schedule_list)
 
             elif len(select_date) == 2:
 
                 schedule_list = Schedule.objects.filter(
-                    group = select_group,
+                    group__id = select_group,
                     day__range = select_date
                     ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('day', 'time')
-
-
 
                 schedule_list = self.group(schedule_list)
 
@@ -69,7 +67,7 @@ class SearchSchedule(View):
         if type_schedule == 'teacher':
             if len(select_date) == 1:
                 schedule_list = Schedule.objects.filter(
-                    teacher = select_teacher,
+                    teacher__id = select_teacher,
                     day = date_from
                     ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('time')
 
@@ -77,10 +75,10 @@ class SearchSchedule(View):
 
             elif len(select_date) == 2:
                 schedule_list = Schedule.objects.filter(
-                    teacher = select_teacher,
+                    teacher__id = select_teacher,
                     day__range = select_date
                     ).values('day', 'time', 'discipline', 'teacher', 'teacher__fio', 'group', 'group__name', 'place').order_by('day', 'time')
-                
+
                 schedule_list = self.group(schedule_list)
 
         data = json.dumps(list(schedule_list), default = customDateSerialize)

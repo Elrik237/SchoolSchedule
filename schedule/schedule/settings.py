@@ -132,6 +132,6 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_ROOT  = os.environ['USERPROFILE'] + '\Desktop\Schedule'
+MEDIA_ROOT  = os.environ['USERPROFILE'] + '\Desktop\Расписание'
 
 MEDIA_URL = "media/"
