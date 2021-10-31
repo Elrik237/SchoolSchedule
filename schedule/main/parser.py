@@ -403,8 +403,6 @@ class Parser():
 
             width_colums = {}
             new_list_day_to_group = {}
-            
-            column_count = schedule.columns[-1]
 
             # первый столбец на день  
             for group in group_list:
@@ -483,20 +481,18 @@ class Parser():
                                             save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
                                             save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 1)",
                                                                 teacher  = save_teacher[0], group = save_group[0], place = place)
-
                                             save_lesson.save()
                                         elif (lesson[2])[-1] == '2':
                                             save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
                                             save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = f"{lesson[1]} (группа 2)",
                                                                 teacher  = save_teacher[0], group = save_group[0], place = place)
-
                                             save_lesson.save()
                                         else:
                                             save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
                                             save_lesson = Schedule(day = self.get_date(d, year, week), time = lesson[0], discipline = lesson[1],
                                                                 teacher  = save_teacher[0], group = save_group[0], place = place)
 
-                                        
+                                            save_lesson.save()
                                         index += 1
                                         count += 1     
                                     elif len(lesson) == 5:
