@@ -48,8 +48,20 @@ class Parser():
             for group in groups:
                 if group != 'Время' and group != '№' and len(group) <= 3:
                     group_list.append(group)
-            column = 4
 
+            column = 4
+            
+            if f"Unnamed: {column+1}" not in schedule.columns :  
+                pass
+            elif f"Unnamed: {column+3}" in schedule.columns and f"Unnamed: {column+5}" in schedule.columns:
+                column += 6
+            elif f"Unnamed: {column+3}" in schedule.columns:
+                column += 4
+            else:
+                column += 2        
+            
+            print(column)
+            
             if len(group_list) != 0:
                 for group in group_list:
                     print(f"Парсинг рассписания: {group}")
@@ -79,8 +91,7 @@ class Parser():
                             line += 2
                             continue
                         else:
-                            if len(lesson) == 6:
-                            
+                            if len(lesson) == 6:                            
                                 if (lesson[2])[-1] == '1':
                                     save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
                                     save_lesson = Schedule.objects.update_or_create(day = date, time = lesson[0], group = save_group[0], subgroup = 1, defaults={"discipline": f"{lesson[1]} (группа 1)", 
@@ -99,7 +110,7 @@ class Parser():
 
                                 count += 1
                                 line += 2
-                            elif len(lesson) == 10:                    
+                            elif len(lesson) == 10:                 
                                 try:
                                     if (lesson[2])[-1] == '1':
                                         get_teacher_one = (lesson[2])[0:-2]
@@ -153,8 +164,8 @@ class Parser():
                                         save_lesson_two = Schedule.objects.update_or_create(day = date, time = lesson[0], group = save_group[0], subgroup = 2, defaults={"discipline": f"{lesson[1]} (группа 2)", 
                                                                                     "teacher": save_teacher_two[0], "place": place_two},)
 
-                                    
-
+                                    count += 1
+                                    line += 2
                                 except:
                                     if (lesson[2])[-1] == '1':
                                         save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
@@ -168,10 +179,9 @@ class Parser():
                                         save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
                                         save_lesson = Schedule.objects.update_or_create(day = date, time = lesson[0], group = save_group[0],  defaults={"discipline": lesson[1], 
                                                                                     "teacher": save_teacher[0], "place": lesson[7]},)
-
-
-                                count += 1
-                                line += 2
+                                    
+                                    count += 1
+                                    line += 2
                             else:
                                 try:
                                     if (lesson[2])[-1] == '1':
@@ -266,7 +276,9 @@ class Parser():
                                         else:
                                             save_lesson_three = Schedule.objects.update_or_create(day = date, time = lesson[0], group = save_group[0], subgroup = 3, defaults={"discipline": f"{lesson[5]} (группа 3)", 
                                                                                         "teacher": save_teacher_three[0], "place": place_three},)
-
+                                    
+                                    count += 1
+                                    line += 2
                                 except:
                                     try:
                                         if (lesson[2])[-1] == '1':
@@ -327,16 +339,21 @@ class Parser():
                                             save_lesson_two = Schedule.objects.update_or_create(day = date, time = lesson[0], group = save_group[0], subgroup = 2, defaults={"discipline": f"{lesson[1]} (группа 2)", 
                                                                                     "teacher": save_teacher_two[0], "place": place_two},)
                                     
-
+                                        count += 1
+                                        line += 2
+                                        
                                     except:
                                         save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
                                         save_lesson = Schedule.objects.update_or_create(day = date, time = lesson[0], group = save_group[0], defaults={"discipline": lesson[1], 
                                                                                     "teacher": save_teacher[0], "place": lesson[9]},)
 
+                                        count += 1
+                                        line += 2
 
                                 count += 1
                                 line += 2
-            
+
+                          
                     if  f"Unnamed: {column+3}" in schedule.columns and f"Unnamed: {column+5}" in schedule.columns:
                         column += 6
                     elif f"Unnamed: {column+3}" in schedule.columns:
