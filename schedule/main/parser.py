@@ -1,10 +1,15 @@
 import os
 
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned
 from .models import Schedule, Teachers, GroupsSchool
 import pandas as pd
 
 from isoweek import Week
+
+
+import sys
+import traceback
 
 
 
@@ -59,8 +64,6 @@ class Parser():
                 column += 4
             else:
                 column += 2        
-            
-            print(column)
             
             if len(group_list) != 0:
                 for group in group_list:
@@ -341,7 +344,7 @@ class Parser():
                                     
                                         count += 1
                                         line += 2
-                                        
+
                                     except:
                                         save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
                                         save_lesson = Schedule.objects.update_or_create(day = date, time = lesson[0], group = save_group[0], defaults={"discipline": lesson[1], 
@@ -362,8 +365,19 @@ class Parser():
                         column += 2
             else:
                 print("Ошибка парсинга. Проверьте оформление\содержание документа или название файла")    
+        except MultipleObjectsReturned as e:
+            # shedule = Schedule.objects.order_by("day" == date, "time" == lesson[0], "group" == group)
+            shedule = Schedule.objects.filter(day=date, time=lesson[0], group=group).delete()
+            print(shedule)
+            self.parser_day(name, date)
+
         except Exception as e:
-            print(e)
+            tb = sys.exc_info()[2]
+            tbinfo = traceback.format_tb(tb)[0]
+            pymsg = "PYTHON ERRORS:\nTraceback info:\n" + tbinfo + "\nError Info:\n" + str(sys.exc_info()[1])
+            print(pymsg)
+        
+            
 
 
     def parser_quarter(self, name, year, week):
@@ -545,7 +559,7 @@ class Parser():
                                                 save_teacher = Teachers.objects.get_or_create(fio = (lesson[2])[0:-2])
                                                 save_lesson = Schedule.objects.update_or_create(day = self.get_date(d, year, week), time = lesson[0], group = save_group[0], subgroup = 2, defaults={"discipline": f"{lesson[1]} (группа 2)", 
                                                                                     "teacher": save_teacher_two[0], "place": place_two},)
-                                            else:
+                                            else:                                             
                                                 save_teacher = Teachers.objects.get_or_create(fio = lesson[2])
                                                 save_lesson = Schedule.objects.update_or_create(day = self.get_date(d, year, week), time = lesson[0], group = save_group[0], defaults={"discipline": lesson[1], 
                                                                                     "teacher": save_teacher[0], "place": place_one},)
@@ -774,14 +788,27 @@ class Parser():
                                 
                                 else:
                                     index += 1
-                    
+
+                    except MultipleObjectsReturned as e:
+                        shedule = Schedule.objects.filter(day=self.get_date(d, year, week), time=lesson[0], group=group).delete()
+                        print(shedule)
+                        self.parser_quarter(name, year, week)
+                        break
                     except:
-                        print("1 Ошибка парсинга. Проверьте оформление\содержание документа или название файла")
+                        print("Ошибка парсинга. Проверьте оформление\содержание документа или название файла")
+                        tb = sys.exc_info()[2]
+                        tbinfo = traceback.format_tb(tb)[0]
+                        pymsg = "PYTHON ERRORS:\nTraceback info:\n" + tbinfo + "\nError Info:\n" + str(sys.exc_info()[1])
+                        print(pymsg)
                         break
             else:
-                print("2 Ошибка парсинга. Проверьте оформление\содержание документа или название файла")              
+                print("Ошибка парсинга. Проверьте оформление\содержание документа или название файла")    
+                          
         except Exception as e:
-            print(e)        
+            tb = sys.exc_info()[2]
+            tbinfo = traceback.format_tb(tb)[0]
+            pymsg = "PYTHON ERRORS:\nTraceback info:\n" + tbinfo + "\nError Info:\n" + str(sys.exc_info()[1])
+            print(pymsg)      
             
     def get_date(self, day, year, week):
 
